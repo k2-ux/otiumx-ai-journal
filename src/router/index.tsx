@@ -5,7 +5,8 @@ import { JournalPage } from "@/features/journal/JournalPage";
 import { ReportsPage } from "@/features/reports/ReportsPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "@/app/AppLayout";
-
+import { AboutPage } from "@/features/about/AboutPage";
+import { ProfilePage } from "@/features/profile/ProfilePage";
 export const router = createBrowserRouter([
   {
     path: "/login",
@@ -29,6 +30,14 @@ export const router = createBrowserRouter([
       {
         path: "/reports",
         element: <ReportsPage />,
+      },
+      {
+        path: "/about",
+        element: <AboutPage />,
+      },
+      {
+        path: "/profile",
+        element: <ProfilePage />,
       },
     ],
   },

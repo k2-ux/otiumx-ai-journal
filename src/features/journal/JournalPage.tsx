@@ -152,7 +152,7 @@ export const JournalPage = () => {
     if (isRecording) {
       stopRecording();
     }
-
+    console.log("saving journal for user:", user.uid);
     await dispatch(
       createEntryThunk({
         userId: user.uid,

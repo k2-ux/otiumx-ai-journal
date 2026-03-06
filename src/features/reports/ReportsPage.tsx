@@ -4,18 +4,22 @@ import { selectReports } from "./reportSlice";
 import { generateReportThunk } from "./reportThunks";
 import { selectJournal } from "../journal/journalSlice";
 import { useState } from "react";
-import "./ReportsPage.css"; // import the CSS file
+import "./ReportsPage.css";
+
+import placeholderImage from "@/assets/report-placeholder.png";
 
 export const ReportsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, latestReport } = useSelector(selectReports);
   const { entries } = useSelector(selectJournal);
+
   const unevaluatedEntries = Object.values(entries).filter(
     (entry) => !entry.evaluated,
   );
 
-  const [showPopup, setShowPopup] = useState(false);
   const progress = unevaluatedEntries.length;
+
+  const [showPopup, setShowPopup] = useState(false);
 
   const handleGenerate = () => {
     if (progress < 7) {
@@ -28,92 +32,76 @@ export const ReportsPage = () => {
   return (
     <div className="reports-page">
       <div className="container">
-        <h2 className="title">Strategic Life Report</h2>
+        <div className="hero">
+          <h2>Strategic Life Report</h2>
+          <p>
+            AI analyzes your last 7 journal entries to detect patterns in your
+            thinking, career direction, wellbeing, and growth opportunities.
+          </p>
+        </div>
+
+        <div className="progress">
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{ width: `${(progress / 7) * 100}%` }}
+            />
+          </div>
+          <span>{progress} / 7 journals ready</span>
+        </div>
 
         <button
-          className={`button ${loading ? "loading" : ""}`}
+          className={`generate-button ${loading ? "loading" : ""}`}
           onClick={handleGenerate}
           disabled={loading}
         >
-          {loading ? "Analyzing..." : "Generate Strategic Report"}
+          {loading ? "Analyzing Your Journals..." : "Generate Strategic Report"}
         </button>
 
         {error && <p className="error">{error}</p>}
 
-        {latestReport && (
-          <div className="report-card">
-            <Section title="Core Patterns">
-              {latestReport.corePatterns?.map((item: string, i: number) => (
-                <li key={i}>{item}</li>
-              ))}
-            </Section>
-
-            <Section title="Career Signals">
-              {latestReport.careerDirectionSignals?.map(
-                (item: string, i: number) => (
-                  <li key={i}>{item}</li>
-                ),
-              )}
-            </Section>
-
-            <Section title="Mental Signals">
-              {latestReport.mentalWellbeingSignals?.map(
-                (item: string, i: number) => (
-                  <li key={i}>{item}</li>
-                ),
-              )}
-            </Section>
-
-            <Section title="Physical Signals">
-              {latestReport.physicalLifestyleSignals?.map(
-                (item: string, i: number) => (
-                  <li key={i}>{item}</li>
-                ),
-              )}
-            </Section>
-
-            <Section title="Risk Factors">
-              {latestReport.riskFactors?.map((item: string, i: number) => (
-                <li key={i}>{item}</li>
-              ))}
-            </Section>
-
-            <Section title="Growth Opportunities">
-              {latestReport.growthOpportunities?.map(
-                (item: string, i: number) => (
-                  <li key={i}>{item}</li>
-                ),
-              )}
-            </Section>
-
-            <Section title="Strategic Focus">
-              <p>{latestReport.recommendedStrategicFocus}</p>
-            </Section>
-
-            <Section title="Compounding Vector">
-              <p>{latestReport.compoundingVector}</p>
-            </Section>
-
-            <Section title="Immediate Action (Next 7 Days)">
-              <p>{latestReport.nextConcreteAction}</p>
-            </Section>
+        {!latestReport && !loading && !error && (
+          <div className="placeholder-container">
+            <img
+              src={placeholderImage}
+              alt="No report yet"
+              className="placeholder-image"
+            />
+            <p>Your strategic report will appear here once generated.</p>
           </div>
+        )}
+
+        {latestReport && (
+          <div className="report-card">{/* your sections here */}</div>
         )}
       </div>
 
       {showPopup && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <h3>Not Enough Journal Entries</h3>
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Not Enough Journals</h3>
+
             <p>
-              You need <strong>7 journal entries</strong> to generate your
-              strategic life report.
+              You need <strong>7 journal entries</strong> before generating a
+              strategic report.
             </p>
+
+            <div className="modal-progress">
+              <div
+                className="modal-fill"
+                style={{ width: `${(progress / 7) * 100}%` }}
+              />
+            </div>
+
             <p>
               Current progress: <strong>{progress} / 7</strong>
             </p>
-            <button className="popup-close" onClick={() => setShowPopup(false)}>
-              Close
+
+            <button
+              className="modal-button"
+              onClick={() => setShowPopup(false)}
+            >
+              Got it
             </button>
           </div>
         </div>
@@ -121,16 +109,3 @@ export const ReportsPage = () => {
     </div>
   );
 };
-
-const Section = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <div className="section">
-    <h4 className="section-title">{title}</h4>
-    <ul className="section-list">{children}</ul>
-  </div>
-);
