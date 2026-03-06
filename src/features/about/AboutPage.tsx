@@ -1,5 +1,3 @@
-// AboutPage.jsx
-import React from "react";
 import "./AboutPage.css";
 
 export const AboutPage = () => {
