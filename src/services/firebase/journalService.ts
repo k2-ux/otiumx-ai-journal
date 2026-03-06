@@ -37,7 +37,7 @@ export class FirebaseJournalService implements IJournalService {
     lastDoc?: QueryDocumentSnapshot,
   ): Promise<{
     entries: JournalEntry[];
-    lastDoc?: QueryDocumentSnapshot;
+    // lastDoc?: QueryDocumentSnapshot;
   }> {
     const entriesRef = collection(db, "users", userId, "journalEntries");
 
@@ -52,14 +52,21 @@ export class FirebaseJournalService implements IJournalService {
 
     const snapshot = await getDocs(q);
 
-    const entries = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...(doc.data() as Omit<JournalEntry, "id">),
-    }));
+    const entries = snapshot.docs.map((doc) => {
+      const data = doc.data();
+
+      return {
+        id: doc.id,
+        content: data.content,
+        moodScore: data.moodScore,
+        evaluated: data.evaluated ?? false,
+        createdAt: data.createdAt?.toDate().toISOString(),
+      };
+    });
 
     return {
       entries,
-      lastDoc: snapshot.docs[snapshot.docs.length - 1],
+      // lastDoc: snapshot.docs[snapshot.docs.length - 1],
     };
   }
 }

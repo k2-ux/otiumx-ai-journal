@@ -2,20 +2,66 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectAuth } from "@/features/auth/authSlice";
 import bg from "@/assets/bg.jpg";
+import { useState } from "react";
 
 export const AppLayout = () => {
   const { user } = useSelector(selectAuth);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  // Navigation link styling
+  const toggleMenu = () => setMenuOpen(!menuOpen);
+
+  // Navigation link styling (used for both desktop and mobile)
   const getNavLinkStyle = ({ isActive }: { isActive: boolean }) => ({
     fontWeight: isActive ? "600" : "400",
     color: isActive ? "#2b3a67" : "#334155",
-    borderBottom: isActive ? "1px solid #2b3a67" : "none",
+    borderBottom: isActive ? "2px solid #2b3a67" : "none",
     paddingBottom: "4px",
+    textDecoration: "none",
+    fontSize: "1rem",
   });
 
   return (
     <div>
+      {/* Add style tag for responsive design */}
+      <style>{`
+        @media (max-width: 768px) {
+          .nav-links {
+            display: ${menuOpen ? "flex" : "none"};
+            flex-direction: column;
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(8px);
+            padding: 1rem 2rem;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 1px solid rgba(0,0,0,0.08);
+            z-index: 99;
+          }
+          .hamburger {
+            display: block;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #2b3a67;
+            padding: 0 0.5rem;
+          }
+        }
+        @media (min-width: 769px) {
+          .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+          }
+          .hamburger {
+            display: none;
+          }
+        }
+      `}</style>
+
       <nav
         style={{
           padding: "1rem 2rem",
@@ -44,33 +90,41 @@ export const AppLayout = () => {
           OtiumX
         </div>
 
+        {/* Hamburger button (visible only on mobile) */}
         {user && (
-          <div style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
+          <button className="hamburger" onClick={toggleMenu}>
+            ☰
+          </button>
+        )}
+
+        {/* Navigation links */}
+        {user && (
+          <div className="nav-links">
             <NavLink
               to="/"
               style={getNavLinkStyle}
-              className={({ isActive }) => (isActive ? "active-link" : "")}
+              onClick={() => setMenuOpen(false)} // Close menu after click
             >
               Journal
             </NavLink>
             <NavLink
               to="/reports"
               style={getNavLinkStyle}
-              className={({ isActive }) => (isActive ? "active-link" : "")}
+              onClick={() => setMenuOpen(false)}
             >
               Reports
             </NavLink>
             <NavLink
               to="/profile"
               style={getNavLinkStyle}
-              className={({ isActive }) => (isActive ? "active-link" : "")}
+              onClick={() => setMenuOpen(false)}
             >
               My Profile
             </NavLink>
             <NavLink
               to="/about"
               style={getNavLinkStyle}
-              className={({ isActive }) => (isActive ? "active-link" : "")}
+              onClick={() => setMenuOpen(false)}
             >
               About
             </NavLink>
