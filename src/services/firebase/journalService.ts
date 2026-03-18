@@ -31,24 +31,12 @@ export class FirebaseJournalService implements IJournalService {
       evaluated: false,
     });
   }
-  async getEntries(
-    userId: string,
-    pageSize = 5,
-    lastDoc?: QueryDocumentSnapshot,
-  ): Promise<{
+  async getEntries(userId: string): Promise<{
     entries: JournalEntry[];
-    // lastDoc?: QueryDocumentSnapshot;
   }> {
     const entriesRef = collection(db, "users", userId, "journalEntries");
 
-    const q = lastDoc
-      ? query(
-          entriesRef,
-          orderBy("createdAt", "desc"),
-          startAfter(lastDoc),
-          limit(pageSize),
-        )
-      : query(entriesRef, orderBy("createdAt", "desc"), limit(pageSize));
+    const q = query(entriesRef, orderBy("createdAt", "desc"));
 
     const snapshot = await getDocs(q);
 
@@ -64,9 +52,6 @@ export class FirebaseJournalService implements IJournalService {
       };
     });
 
-    return {
-      entries,
-      // lastDoc: snapshot.docs[snapshot.docs.length - 1],
-    };
+    return { entries };
   }
 }

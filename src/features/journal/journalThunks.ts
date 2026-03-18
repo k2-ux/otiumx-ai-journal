@@ -28,10 +28,11 @@ export const createEntryThunk = createAsyncThunk<
 );
 
 // FETCH ENTRIES
+
 export const fetchEntriesThunk = createAsyncThunk<
-  { entries: JournalEntry[]; lastDoc?: any },
-  { userId: string; pageSize?: number; lastDoc?: any },
+  { entries: JournalEntry[] },
+  { userId: string },
   ThunkConfig
->("journal/fetchEntries", async ({ userId, pageSize, lastDoc }, { extra }) => {
-  return await extra.journalService.getEntries(userId, pageSize, lastDoc);
+>("journal/fetchEntries", async ({ userId }, { extra }) => {
+  return await extra.journalService.getEntries(userId);
 });

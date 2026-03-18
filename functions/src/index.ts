@@ -54,64 +54,68 @@ export const generateInsightReport = onCall(
   { secrets: [GEMINI_API_KEY] },
   async (request) => {
     try {
-      // 🔐 Ensure user is authenticated
+      // 🔐 Auth check
       if (!request.auth) {
         throw new HttpsError("unauthenticated", "Login required.");
       }
 
       const userId = request.auth.uid;
 
-      // 🔑 Retrieve Gemini API key from Secret Manager
       const geminiKey = GEMINI_API_KEY.value();
-
       if (!geminiKey) {
         throw new HttpsError("internal", "Gemini API key not available.");
       }
 
-      // 📖 Fetch last 7 journal entries
       const journalRef = db
         .collection("users")
         .doc(userId)
         .collection("journalEntries");
 
+      // 🔥 STEP 1: Fetch UNEVALUATED entries (latest 7)
       const snapshot = await journalRef
         .where("evaluated", "==", false)
-        .orderBy("createdAt", "asc")
+        .orderBy("createdAt", "desc") // newest first
         .limit(7)
         .get();
 
       if (snapshot.size < 7) {
         throw new HttpsError(
           "failed-precondition",
-          "You can generate an insight report only after 7 new journal entries.",
+          "You need 7 new journal entries before generating a report.",
         );
       }
 
-      // 🧠 Combine entries into one analysis text block
-      const dynamicJournalText = snapshot.docs
+      // 🔥 STEP 2: Sort them chronologically (OLD → NEW)
+      const docs = snapshot.docs.sort((a, b) => {
+        const aTime = a.data().createdAt?.toMillis?.() || 0;
+        const bTime = b.data().createdAt?.toMillis?.() || 0;
+        return aTime - bTime;
+      });
+
+      // 🧠 STEP 3: Build text
+      const journalText = docs
         .map((doc) => {
           const data = doc.data();
           return `Mood: ${data.moodScore}\nEntry: ${data.content}`;
         })
         .join("\n\n");
-      // const demoJournalText = demoEntries
-      //   .map((entry) => `Mood: ${entry.moodScore}\nEntry: ${entry.content}`)
-      //   .join("\n\n");
-      const journalText = dynamicJournalText;
-      // const journalText = demoJournalText;
-      // 🤖 Run AI analysis
+
+      // 🤖 STEP 4: AI analysis
       const analysis = await selfAnalysisFlow({
         journalText,
         geminiKey,
       });
+
+      // 🔥 STEP 5: Mark entries as evaluated
       const batch = db.batch();
 
-      snapshot.docs.forEach((doc) => {
+      docs.forEach((doc) => {
         batch.update(doc.ref, { evaluated: true });
       });
 
       await batch.commit();
-      // 💾 Save report
+
+      // 💾 STEP 6: Save report
       const reportRef = await db
         .collection("users")
         .doc(userId)
@@ -121,7 +125,7 @@ export const generateInsightReport = onCall(
           generatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
 
-      // 📤 Return result to client
+      // 📤 STEP 7: Return
       return {
         reportId: reportRef.id,
         ...analysis,
