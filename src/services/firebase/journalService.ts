@@ -6,9 +6,6 @@ import {
   getDocs,
   query,
   orderBy,
-  limit,
-  startAfter,
-  QueryDocumentSnapshot,
 } from "@firebase/firestore";
 
 import { db } from "@/firebase/firestore";
