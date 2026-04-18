@@ -21,11 +21,8 @@ export const JournalPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector(selectAuth);
   const { entries, loading, error } = useSelector(selectJournal);
-  const unevaluatedEntries = Object.values(entries).filter(
-    (entry) => !entry.evaluated,
-  );
-
-  const progress = unevaluatedEntries.length;
+  const totalEntries = Object.values(entries).length;
+  const progress = Math.min(totalEntries, 7);
   const [transcript, setTranscript] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [inputLanguage, setInputLanguage] = useState("english");
@@ -184,16 +181,13 @@ export const JournalPage = () => {
           </button>
         </div>
 
-        <div className="progress-section">
-          <strong>Weekly Insight Progress</strong>
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{ width: `${Math.min((progress / 7) * 100, 100)}%` }}
-            />
+        {progress < 7 && (
+          <div className="progress-section">
+            <p className="progress-text">
+              You need {7 - progress} more {7 - progress === 1 ? "journal" : "journals"} to get started with report generation, remember you can only add one journal each day.
+            </p>
           </div>
-          <p className="progress-text">{progress} / 7 entries completed</p>
-        </div>
+        )}
 
         <div className="entry-form">
           <h3 className="section-title">Today's Entry ({today})</h3>
