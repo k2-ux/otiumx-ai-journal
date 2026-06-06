@@ -29,13 +29,14 @@ export const JournalPage = () => {
   const [moodScore, setMoodScore] = useState(5);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [recordTime, setRecordTime] = useState(0);
+  const [recordError, setRecordError] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA");
   const functions = getFunctions(app, "us-central1");
   const transcribe = httpsCallable(functions, "transcribeAudio");
   const alreadySubmittedToday = entries[today];
@@ -61,8 +62,15 @@ export const JournalPage = () => {
 
   const startRecording = async () => {
     setTranscript("");
+    setRecordError(null);
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setRecordError("Microphone access denied. Please allow microphone access and try again.");
+      return;
+    }
     streamRef.current = stream;
 
     const mediaRecorder = new MediaRecorder(stream);
@@ -133,11 +141,13 @@ export const JournalPage = () => {
       console.log("audio size:", blob.size);
       const result: any = await transcribe({
         audio: base64Audio,
+        language: inputLanguage,
       });
 
       setTranscript(result.data.text || "");
     } catch (err) {
       console.error("Transcription error:", err);
+      setRecordError("Voice transcription failed. Please try again.");
     } finally {
       setIsTranscribing(false);
     }
@@ -224,6 +234,8 @@ export const JournalPage = () => {
               Stop
             </button>
           </div>
+
+          {recordError && <p className="error">{recordError}</p>}
 
           {isRecording && (
             <p className="recording-indicator">

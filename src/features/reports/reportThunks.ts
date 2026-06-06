@@ -13,3 +13,11 @@ export const generateReportThunk = createAsyncThunk<
 >("reports/generate", async ({ language }, { extra }) => {
   return await extra.reportService.generateReport(language);
 });
+
+export const fetchLatestReportThunk = createAsyncThunk<
+  any,
+  { userId: string },
+  ThunkConfig
+>("reports/fetchLatest", async ({ userId }, { extra }) => {
+  return await extra.reportService.fetchLatestReport(userId);
+});

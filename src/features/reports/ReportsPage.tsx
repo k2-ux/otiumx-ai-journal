@@ -1,8 +1,11 @@
 import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
 import type { AppDispatch } from "@/store";
 import { selectReports } from "./reportSlice";
-import { generateReportThunk } from "./reportThunks";
+import { generateReportThunk, fetchLatestReportThunk } from "./reportThunks";
 import { selectJournal } from "../journal/journalSlice";
+import { fetchEntriesThunk } from "../journal/journalThunks";
+import { selectAuth } from "../auth/authSlice";
 import { useState } from "react";
 import "./ReportsPage.css";
 
@@ -26,12 +29,21 @@ export const ReportsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { loading, error, latestReport } = useSelector(selectReports);
   const { entries } = useSelector(selectJournal);
+  const { user } = useSelector(selectAuth);
 
   const totalEntries = Object.values(entries).length;
   const progress = Math.min(totalEntries, 7);
 
   const [showPopup, setShowPopup] = useState(false);
   const [language, setLanguage] = useState("english");
+
+  useEffect(() => {
+    if (!user) return;
+    if (totalEntries === 0) {
+      dispatch(fetchEntriesThunk({ userId: user.uid }));
+    }
+    dispatch(fetchLatestReportThunk({ userId: user.uid }));
+  }, [user, dispatch]);
 
   const handleGenerate = () => {
     if (progress < 7) {
