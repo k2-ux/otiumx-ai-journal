@@ -1,3 +1,3 @@
 export interface IReportService {
-  generateReport(): Promise<any>;
+  generateReport(language: string): Promise<any>;
 }

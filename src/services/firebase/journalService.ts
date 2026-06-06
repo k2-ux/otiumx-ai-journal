@@ -25,7 +25,6 @@ export class FirebaseJournalService implements IJournalService {
       content,
       moodScore,
       createdAt: serverTimestamp(),
-      evaluated: false,
     });
   }
   async getEntries(userId: string): Promise<{
@@ -44,7 +43,6 @@ export class FirebaseJournalService implements IJournalService {
         id: doc.id,
         content: data.content,
         moodScore: data.moodScore,
-        evaluated: data.evaluated ?? false,
         createdAt: data.createdAt?.toDate().toISOString(),
       };
     });

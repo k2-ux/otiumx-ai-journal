@@ -3,5 +3,4 @@ export interface JournalEntry {
   content: string;
   moodScore: number;
   createdAt: string | Date;
-  evaluated: boolean;
 }

@@ -60,6 +60,7 @@ export const generateInsightReport = onCall(
       }
 
       const userId = request.auth.uid;
+      const language = request.data?.language || "english";
 
       const geminiKey = GEMINI_API_KEY.value();
       if (!geminiKey) {
@@ -71,9 +72,8 @@ export const generateInsightReport = onCall(
         .doc(userId)
         .collection("journalEntries");
 
-      // 🔥 STEP 1: Fetch UNEVALUATED entries (latest 7)
+      // 🔥 STEP 1: Fetch the latest 7 entries (rolling window)
       const snapshot = await journalRef
-        .where("evaluated", "==", false)
         .orderBy("createdAt", "desc") // newest first
         .limit(7)
         .get();
@@ -81,7 +81,7 @@ export const generateInsightReport = onCall(
       if (snapshot.size < 7) {
         throw new HttpsError(
           "failed-precondition",
-          "You need 7 new journal entries before generating a report.",
+          "You need at least 7 journal entries before generating a report.",
         );
       }
 
@@ -104,18 +104,10 @@ export const generateInsightReport = onCall(
       const analysis = await selfAnalysisFlow({
         journalText,
         geminiKey,
+        language,
       });
 
-      // 🔥 STEP 5: Mark entries as evaluated
-      const batch = db.batch();
-
-      docs.forEach((doc) => {
-        batch.update(doc.ref, { evaluated: true });
-      });
-
-      await batch.commit();
-
-      // 💾 STEP 6: Save report
+      // 💾 STEP 5: Save report
       const reportRef = await db
         .collection("users")
         .doc(userId)

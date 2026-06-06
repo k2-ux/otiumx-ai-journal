@@ -21,8 +21,7 @@ export const createEntryThunk = createAsyncThunk<
       id: date,
       content,
       moodScore,
-      createdAt: new Date(),
-      evaluated: false,
+      createdAt: new Date().toISOString(),
     };
   },
 );

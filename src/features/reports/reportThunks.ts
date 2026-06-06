@@ -6,9 +6,10 @@ interface ThunkConfig {
   };
 }
 
-export const generateReportThunk = createAsyncThunk<any, void, ThunkConfig>(
-  "reports/generate",
-  async (_, { extra }) => {
-    return await extra.reportService.generateReport();
-  },
-);
+export const generateReportThunk = createAsyncThunk<
+  any,
+  { language: string },
+  ThunkConfig
+>("reports/generate", async ({ language }, { extra }) => {
+  return await extra.reportService.generateReport(language);
+});
